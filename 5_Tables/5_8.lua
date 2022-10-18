@@ -14,7 +14,7 @@ function concat(t)
     end
 
     ans = ""
-    for i = #stack, 1, -1 do
+    for _ = 1, #stack do
         ans = table.remove(stack) .. ans
     end
     return ans
@@ -27,10 +27,8 @@ end
 
 time = os.clock()
 ans = concat(long_t)
-print(os.clock() - time)
--- print(ans)
+print(os.clock() - time) -- 0.362
 
 time = os.clock()
 ans = table.concat(long_t)
-print(os.clock() - time)
--- print(ans)
+print(os.clock() - time) -- 0.022
