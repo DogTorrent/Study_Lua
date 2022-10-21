@@ -1,3 +1,6 @@
+-- 练习15.5：在保存具有循环的表时，避免使用构造器的方法过于激进了。对于简单的情况，是能够使用表构造器以一种更加优雅的方式来保存表的，
+-- 并且也能够在后续使用赋值语句来修复共享表和循环。请使用这种方式重新实现函数save（示例15.3），其中要运用前面练习中的所有优点（缩进、记录式语法及列表式语法）。
+
 local function is_formatable_val(o)
     local t = type(o)
     return (t == "number" or t == "string" or t == "boolean" or t == "nil")
@@ -22,7 +25,7 @@ local function save(name, value, level, saved, need_repair)
     if is_formatable_val(value) then
         serialize_formatable_val(value)
 
-    elseif level == 0 and type(value) == "table" and saved[value] ~= nil then
+    elseif level == 0 and saved[value] ~= nil then
         need_repair[name] = saved[value]
 
     elseif type(value) == "table" then
@@ -31,13 +34,17 @@ local function save(name, value, level, saved, need_repair)
 
         io.write("{\n")
         for child_key, child_value in pairs(value) do
-            if not is_formatable_val(child_key) then
-                error("cannot serialize a " .. type(child_key) .. " key")
+            local child_name
+
+            if is_formatable_val(child_key) then
+                child_name = string.format("%s[%q]", name, child_key)
+            elseif saved[child_key] ~= nil then
+                child_name = string.format("%s[%s]", name, saved[child_key])
+            else
+                error("cannot serialize such key: " .. tostring(child_key))
             end
 
-            local child_name = string.format("%s[%q]", name, child_key)
-
-            if type(child_value) == "table" then
+            if not is_formatable_val(child_value) then
                 if saved[child_value] ~= nil then
                     need_repair[child_name] = saved[child_value]
                     goto continue
@@ -61,7 +68,7 @@ local function save(name, value, level, saved, need_repair)
         io.write(indentation .. "}")
 
     else
-        error("cannot serialize a " .. type(value) .. " value")
+        error("cannot serialize such value: " .. tostring(value))
     end
 
 
@@ -77,6 +84,8 @@ local t1 = {}
 t1[1] = t1
 local t2 = { 1, 2, t1, {} }
 t2[4][2] = t2
+t2[t2] = t2
+t2[t1] = t1
 local saved = {}
 save("t1", t1, 0, saved)
 save("t2", t2, 0, saved)
