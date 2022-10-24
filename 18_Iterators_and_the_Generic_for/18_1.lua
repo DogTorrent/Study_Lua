@@ -12,3 +12,11 @@ end
 for i in fromto(5, 10) do
     print(i)
 end
+
+local ns_fromto = function(n, m)
+    return function(max, cur) cur = cur + 1; return cur <= max and cur or nil end, m, n - 1
+end
+
+for i in ns_fromto(5, 10) do
+    print(i)
+end
