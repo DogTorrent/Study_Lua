@@ -1,3 +1,9 @@
+-- 练习23.5：对于这个练习，你需要至少一个使用很多内存的Lua脚本。如果你没有这样的脚本，那就写一个（一个创建表的循环就可以）。
+-- ● 使用不同的palse和stepmul运行脚本。它们的值是如何影响脚本的性能和内存使用的？
+--   如果把pause值设为0会发生什么？如果把pause设成1000会发生什么？
+--   如果把stepmul设成0会发生什么？如果把stepmul设成1000000会发生什么？
+-- ● 调整你的脚本，使其能够完整地控制垃圾收集器。脚本应该让垃圾收集器停止运行，然后时不时地完成垃圾收集的工作。你能够使用这种方式提高脚本的性能吗？
+
 local function test(pause, stepmul)
     collectgarbage("setpause", pause)
     collectgarbage("setstepmul", stepmul)
