@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "console": "externalTerminal",
-      "cwd": "e:/Projects/Study_Lua/27_An_Overview_of_the_C_API",
-      "program": "e:/Projects/Study_Lua/27_An_Overview_of_the_C_API/build/Debug/outDebug"
+      "cwd": "e:/Projects/Study_Lua/28_Extending_Your_Application",
+      "program": "e:/Projects/Study_Lua/28_Extending_Your_Application/build/Debug/outDebug"
     }
   ]
 }
