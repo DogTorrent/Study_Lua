@@ -11,11 +11,7 @@
   ],
   "C_Cpp_Runner.enableWarnings": true,
   "C_Cpp_Runner.warningsAsError": false,
-  "C_Cpp_Runner.compilerArgs": [
-    "/MT",
-    "/DSFML_STATIC",
-    "${workspaceFolder}/ThirdParty/lib/lua.lib"
-  ],
+  "C_Cpp_Runner.compilerArgs": [],
   "C_Cpp_Runner.linkerArgs": [],
   "C_Cpp_Runner.includePaths": [
     "${workspaceFolder}/ThirdParty/include/"

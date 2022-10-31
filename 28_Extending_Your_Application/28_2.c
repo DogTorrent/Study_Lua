@@ -1,5 +1,6 @@
 // 练习28.2：修改函数call_va（见示例28.5）来处理布尔类型的值。
 
+#pragma comment(lib, "../ThirdParty/lib/lua.lib")
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>

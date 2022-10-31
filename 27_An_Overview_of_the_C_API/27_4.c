@@ -2,8 +2,7 @@
 // 这个库应该设置它自己的内存分配函数，此函数在调用原始的分配函数之前，应该检查在使用的内存总量，并且在请求的内存超出限制时返回NULL。
 // （提示：这个库可以使用分配函数的用户数据来保存状态，例如字节数、当前内存限制等；请记住，在调用原始分配函数时应该使用原始的用户数据。）
 
-#include <stdio.h>
-#include <string.h>
+#pragma comment(lib, "../ThirdParty/lib/lua.lib")
 #include <stdlib.h>
 #include "lua.h"
 #include "lauxlib.h"

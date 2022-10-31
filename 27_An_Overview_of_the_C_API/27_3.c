@@ -8,8 +8,7 @@
 // lua_insert(L, -2);
 // 练习7.3：使用函数stackDump（见示例27.2）检查上一道题的答案。
 
-#include <stdio.h>
-#include <string.h>
+#pragma comment(lib, "../ThirdParty/lib/lua.lib")
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"

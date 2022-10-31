@@ -1,7 +1,6 @@
 // 练习27.1：编译并运行简单的独立运行的解释器（示例27.1）。
 
-#include <stdio.h>
-#include <string.h>
+#pragma comment(lib, "../ThirdParty/lib/lua.lib")
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
