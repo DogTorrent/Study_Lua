@@ -53,12 +53,23 @@ static int l_foreach(lua_State *L)
         // push function
         lua_pushvalue(L, 2);
         lua_insert(L, 4);
-        lua_pcall(L, 2, 0, 0);
+        int stat_code = lua_pcall(L, 2, 0, 0);
+        if (stat_code != LUA_OK)
+        {
+            return lua_error(L);
+        }
     }
+    lua_settop(L, 2);
     return 0;
 }
-static int foreach_continuation(lua_State *L, int status, intptr_t ctx){
-    if(status == LUA_YIELD){
+
+static int foreach_continuation(lua_State *L, int status, intptr_t ctx)
+{
+    if (status == LUA_YIELD || status == LUA_OK)
+    {
+        // see https://www.lua.org/manual/5.4/manual.html#lua_next
+        if (lua_gettop(L) == 2)
+            lua_pushnil(L); // first key
         while (lua_next(L, 1) != 0)
         {
             // push one more key before function
@@ -73,23 +84,13 @@ static int foreach_continuation(lua_State *L, int status, intptr_t ctx){
     lua_settop(L, 2);
     return 0;
 }
+
 static int l_foreach_yieldable(lua_State *L)
 {
     luaL_checktype(L, 1, LUA_TTABLE);
     luaL_checktype(L, 2, LUA_TFUNCTION);
-    // see https://www.lua.org/manual/5.4/manual.html#lua_next
-    lua_pushnil(L); // first key
-    while (lua_next(L, 1) != 0)
-    {
-        // push one more key before function
-        lua_pushvalue(L, 3);
-        lua_insert(L, 3);
-        // push function
-        lua_pushvalue(L, 2);
-        lua_insert(L, 4);
-        lua_pcallk(L, 2, 0, 0, 0, foreach_continuation);
-    }
-    return foreach_continuation(L, LUA_OK, 0);
+    foreach_continuation(L, LUA_OK, 0);
+    return 0;
 }
 
 __declspec(dllexport) int luaopen_mylib(lua_State *L)
@@ -105,5 +106,5 @@ __declspec(dllexport) int luaopen_mylib(lua_State *L)
     return 1;
 }
 
-// cmd /k """path/to/vcvars64.bat"" x64 && cl.exe mylib.c -I ../ThirdParty/include/ -link -DLL -OUT:mylib.dll && del del mylib.obj mylib.lib mylib.exp && exit"
-// gcc -I ..\ThirdParty\include\ .\mylib.c -c -fPIC -shared -o mylib.dll
+// cmd /k """path/to/vcvars64.bat"" x64 && cl.exe mylib.c -I ../ThirdParty/include/ -link -DLL -OUT:mylib.dll && del mylib.obj mylib.lib mylib.exp && exit || exit"
+// or: gcc -I ..\ThirdParty\include\ .\mylib.c -c -fPIC -shared -o mylib.dll

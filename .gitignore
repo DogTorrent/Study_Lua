@@ -4,3 +4,5 @@ build
 *.ilk
 *.exe
 *.exp
+*.dll
+!lua.dll

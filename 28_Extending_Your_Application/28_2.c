@@ -108,3 +108,6 @@ int main()
     call_va(L, "f", "b>b", 0, &b);
     printf("%s", b ? "true" : "false");
 }
+
+// cmd /k """path/to/vcvars64.bat"" x64 && cl.exe 28_2.c -I ../ThirdParty/include/ && del 28_2.obj && exit || exit"
+// copy ..\lua.dll .\ && cmd /k "28_2.exe && exit || exit" && del lua.dll || del lua.dll

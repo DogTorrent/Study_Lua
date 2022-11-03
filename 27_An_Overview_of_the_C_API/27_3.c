@@ -81,3 +81,6 @@ static void stackDump(lua_State *L)
     }
     printf("\n");
 }
+
+// cmd /k """path/to/vcvars64.bat"" x64 && cl.exe 27_3.c -I ../ThirdParty/include/ && del 27_3.obj && exit || exit"
+// copy ..\lua.dll .\ && cmd /k "27_3.exe && exit || exit" && del lua.dll || del lua.dll

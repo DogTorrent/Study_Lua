@@ -25,3 +25,6 @@ int main()
     lua_close(L);
     return 0;
 }
+
+// cmd /k """path/to/vcvars64.bat"" x64 && cl.exe 27_1.c -I ../ThirdParty/include/ && del 27_1.obj && exit || exit"
+// copy ..\lua.dll .\ && cmd /k "27_1.exe && exit || exit" && del lua.dll || del lua.dll

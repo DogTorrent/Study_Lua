@@ -64,3 +64,6 @@ int main()
     test(1024 * 20);
     // test(1024); // PANIC: unprotected error in call to Lua API (not enough memory)
 }
+
+// cmd /k """path/to/vcvars64.bat"" x64 && cl.exe 27_4.c -I ../ThirdParty/include/ && del 27_4.obj && exit || exit"
+// copy ..\lua.dll .\ && cmd /k "27_4.exe && exit || exit" && del lua.dll || del lua.dll
