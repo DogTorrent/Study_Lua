@@ -6,3 +6,4 @@ build
 *.exp
 *.dll
 !lua.dll
+!pthreadVC3.dll
