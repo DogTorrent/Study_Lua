@@ -28,39 +28,90 @@ static Proc *getself(lua_State *L)
     return p;
 }
 
+static int copyvalue(lua_State *send, lua_State *recv, int fromidx)
+{
+    int type = lua_type(send, fromidx);
+    switch (type)
+    {
+    case LUA_TBOOLEAN:
+    {
+        lua_pushboolean(recv, lua_toboolean(send, fromidx));
+        break;
+    }
+    case LUA_TNUMBER:
+    {
+        if (lua_isinteger(send, fromidx))
+            lua_pushinteger(recv, lua_tointeger(send, fromidx));
+        else
+            lua_pushnumber(recv, lua_tonumber(send, fromidx));
+        break;
+    }
+    case LUA_TSTRING:
+    {
+        lua_pushstring(recv, lua_tostring(send, fromidx));
+        break;
+    }
+    default:
+    {
+        return 0;
+    }
+    }
+    return 1;
+}
+static void copytable(lua_State *send, lua_State *recv, int sendi)
+{
+    if (sendi < 0)
+        sendi = lua_gettop(send) + sendi + 1;
+    lua_newtable(recv);
+    int recvi = lua_gettop(recv);
+
+    lua_pushnil(send);
+    while (lua_next(send, sendi) != 0)
+    {
+        // send : ..., table, ..., key, value
+        // index:        t         -2    -1
+
+        if (!copyvalue(send, recv, -2))
+        {
+            if (lua_type(send, -2) == LUA_TTABLE)
+            {
+                copytable(send, recv, lua_gettop(send) - 1);
+            }
+            else
+            {
+                lua_pushnil(recv);
+            }
+        };
+        if (!copyvalue(send, recv, -1))
+        {
+            if (lua_type(send, -1) == LUA_TTABLE)
+            {
+                copytable(send, recv, lua_gettop(send));
+            }
+            else
+            {
+                lua_pushnil(recv);
+            }
+        };
+        lua_settable(recv, recvi);
+        // send : ..., table, ..., key
+        // index:        t         -1
+        lua_pop(send, 1);
+    }
+}
+
 static void movevalues(lua_State *send, lua_State *recv)
 {
     int n = lua_gettop(send);
     luaL_checkstack(recv, n, "too many results");
-    for (size_t i = 2; i <= n; i++)
+    for (size_t i = 3; i <= n; i++)
     {
-        int type = lua_type(send, i);
-        switch (type)
+        if (!copyvalue(send, recv, i))
         {
-        case LUA_TBOOLEAN:
-        {
-            lua_pushboolean(recv, lua_toboolean(send, i));
-            break;
-        }
-        case LUA_TNUMBER:
-        {
-            lua_pushnumber(recv, lua_tonumber(send, i));
-            break;
-        }
-        case LUA_TSTRING:
-        {
-            lua_pushstring(recv, lua_tostring(send, i));
-            break;
-        }
-        case LUA_TTABLE:
-        {
-            // todo
-        }
-        default:
-        {
-            lua_pushnil(recv);
-            break;
-        }
+            if (lua_type(send, i) == LUA_TTABLE)
+                copytable(send, recv, i);
+            else
+                lua_pushnil(recv);
         }
     }
 }
@@ -86,7 +137,7 @@ static Proc *searchmatch(const char *channel, Proc **list)
     return NULL;
 }
 
-static void waitonlist(lua_State *L, const char *channel, Proc **list)
+static void waitonlist(lua_State *L, const char *channel, Proc **list, time_t waitseconds)
 {
     Proc *p = getself(L);
     if (*list == NULL)
@@ -105,13 +156,29 @@ static void waitonlist(lua_State *L, const char *channel, Proc **list)
     p->channel = channel;
     do
     {
-        pthread_cond_wait(&p->cond, &kernel_access);
+        const struct timespec to = {time(NULL) + waitseconds, 0};
+        int err = pthread_cond_timedwait(&p->cond, &kernel_access, &to);
+        if (err == ETIMEDOUT)
+        {
+            // remove self from list
+            if (*list == p)
+            {
+                *list = (p->next == p) ? NULL : p->next;
+            }
+            else
+            {
+                p->prev->next = p->next;
+                p->next->prev = p->prev;
+            }
+            break;
+        }
     } while (p->channel);
 }
 
 static int ll_send(lua_State *L)
 {
     const char *channel = luaL_checkstring(L, 1);
+    time_t waitseconds = luaL_checkinteger(L, 2);
     pthread_mutex_lock(&kernel_access);
     Proc *p = searchmatch(channel, &waittorecv);
     if (p)
@@ -122,7 +189,7 @@ static int ll_send(lua_State *L)
     }
     else
     {
-        waitonlist(L, channel, &waittosend);
+        waitonlist(L, channel, &waittosend, waitseconds);
     }
     pthread_mutex_unlock(&kernel_access);
     return 0;
@@ -131,7 +198,8 @@ static int ll_send(lua_State *L)
 static int ll_recv(lua_State *L)
 {
     const char *channel = luaL_checkstring(L, 1);
-    lua_settop(L, 1);
+    time_t waitseconds = luaL_checkinteger(L, 2);
+    lua_settop(L, 2);
     pthread_mutex_lock(&kernel_access);
     Proc *p = searchmatch(channel, &waittosend);
     if (p)
@@ -142,10 +210,10 @@ static int ll_recv(lua_State *L)
     }
     else
     {
-        waitonlist(L, channel, &waittorecv);
+        waitonlist(L, channel, &waittorecv, waitseconds);
     }
     pthread_mutex_unlock(&kernel_access);
-    return lua_gettop(L) - 1;
+    return lua_gettop(L) - 2;
 }
 
 static void *ll_thread(void *arg);
